@@ -93,8 +93,47 @@ export const validators = {
 
 // ---------------------------------------------------------------------------
 // 2. Conditional fields
+// A panel declares what it depends on in markup:
+//   <div data-conditional-for="policy" data-conditional-value="yes">
+// and is shown only while that named control has that value. Nothing here
+// knows about specific fields, so adding another conditional question is a
+// markup-only change.
 // ---------------------------------------------------------------------------
-// TODO: step 5
+
+const FIELD_SELECTOR = 'input, select, textarea';
+
+function setPanelVisible(panel, visible) {
+  panel.hidden = !visible;
+
+  panel.querySelectorAll(FIELD_SELECTOR).forEach((field) => {
+    // Disabled fields are neither validated nor submitted, so a hidden
+    // answer can never leak into the submission. Values are kept, so an
+    // accidental "No" then "Yes" does not throw away an uploaded file.
+    field.disabled = !visible;
+    // Only mandatory while visible (data-required marks which ones).
+    field.required = visible && field.hasAttribute('data-required');
+  });
+}
+
+export function initConditionalFields(form) {
+  form.querySelectorAll('[data-conditional-for]').forEach((panel) => {
+    const { conditionalFor: name, conditionalValue: expected } = panel.dataset;
+    const controls = [...form.querySelectorAll(`[name="${name}"]`)];
+    // The control that reveals the panel gets disclosure semantics so screen
+    // readers announce "expanded"/"collapsed" as it changes.
+    const trigger = controls.find((c) => c.value === expected);
+    if (trigger) trigger.setAttribute('aria-controls', panel.id);
+
+    const update = () => {
+      const visible = form.elements[name].value === expected;
+      setPanelVisible(panel, visible);
+      if (trigger) trigger.setAttribute('aria-expanded', String(visible));
+    };
+
+    controls.forEach((c) => c.addEventListener('change', update));
+    update(); // apply initial state (also handles browser-restored answers)
+  });
+}
 
 
 // ---------------------------------------------------------------------------
@@ -108,5 +147,6 @@ export const validators = {
 // ---------------------------------------------------------------------------
 
 if (typeof document !== 'undefined') {
-  // TODO: step 5
+  const form = document.getElementById('hs-form');
+  initConditionalFields(form);
 }
