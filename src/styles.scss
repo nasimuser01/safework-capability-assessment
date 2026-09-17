@@ -1,4 +1,5 @@
 @use 'sass:map';
+@use 'sass:color';
 
 // ===========================================================================
 // SafeWork NSW Capability Assessment – form styles
@@ -124,16 +125,437 @@ $breakpoints: (
 // ---------------------------------------------------------------------------
 // 3. Base
 // ---------------------------------------------------------------------------
-// TODO: step 3
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 100%; // respect user font-size preference (WCAG 1.4.4 Resize Text)
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: $font-family;
+  font-size: $font-size-base;
+  line-height: $line-height;
+  color: $text-dark;
+  background: $white;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1,
+h2,
+h3,
+p,
+ul,
+fieldset {
+  margin: 0;
+}
+
+h1 {
+  font-size: $font-size-xl;
+  line-height: 1.25;
+  margin-bottom: $space-4;
+
+  @include respond-to('md') {
+    font-size: $font-size-xxl;
+  }
+}
+
+h2 {
+  font-size: $font-size-lg;
+  line-height: 1.3;
+}
+
+p {
+  margin-bottom: $space-3;
+}
+
+ul {
+  padding-left: $space-4;
+  margin-bottom: $space-3;
+}
+
+li + li {
+  margin-top: $space-1;
+}
+
+a {
+  color: $link;
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+
+  &:visited {
+    color: $visited;
+  }
+
+  &:hover {
+    text-decoration-thickness: 2px;
+  }
+}
+
+// Form controls inherit typography instead of browser defaults.
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+// Every focusable element gets the same visible focus indicator.
+:focus-visible {
+  @include focus-ring;
+}
+
+// Respect reduced-motion preference for the few transitions used below.
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+  }
+}
 
 
 // ---------------------------------------------------------------------------
 // 4. Layout
 // ---------------------------------------------------------------------------
-// TODO: step 3
+
+.container {
+  width: 100%;
+  max-width: $container-max;
+  margin-inline: auto;
+  padding-inline: $space-3; // 16px gutter on phones
+
+  @include respond-to('md') {
+    padding-inline: $space-4;
+  }
+}
+
+.skip-link {
+  @include visually-hidden;
+
+  // Becomes visible when focused via keyboard (WCAG 2.4.1 Bypass Blocks).
+  &:focus {
+    position: fixed;
+    top: $space-2;
+    left: $space-2;
+    z-index: 100;
+    width: auto;
+    height: auto;
+    margin: 0;
+    padding: $space-2 $space-3;
+    clip: auto;
+    overflow: visible;
+    white-space: normal;
+    background: $white;
+    color: $brand-dark;
+    font-weight: 700;
+  }
+}
+
+.site-header {
+  background: $brand-dark;
+  color: $text-light;
+  padding-block: $space-3;
+  border-bottom: 4px solid $brand-accent;
+
+  &__brand {
+    margin: 0;
+    font-size: $font-size-lg;
+    font-weight: 700;
+  }
+}
+
+main {
+  flex: 1;
+  padding-block: $space-5 $space-6;
+}
+
+.site-footer {
+  background: $off-white;
+  color: $grey-02;
+  font-size: $font-size-sm;
+  padding-block: $space-4;
+
+  p {
+    margin: 0;
+  }
+}
+
+.intro {
+  margin-bottom: $space-5;
+
+  &__heading {
+    margin-bottom: $space-2;
+  }
+}
+
+.visually-hidden {
+  @include visually-hidden;
+}
+
+.required {
+  color: $status-error;
+  font-weight: 700;
+}
 
 
 // ---------------------------------------------------------------------------
 // 5. Components
 // ---------------------------------------------------------------------------
-// TODO: step 3
+
+// --- Form ------------------------------------------------------------------
+
+.form {
+  &__fieldset {
+    border: 0;
+    padding: 0;
+    margin-bottom: $space-5;
+    min-width: 0; // allow fieldsets to shrink on narrow screens
+  }
+
+  &__legend {
+    font-size: $font-size-lg;
+    font-weight: 700;
+    color: $brand-dark;
+    padding: 0 0 $space-2;
+    margin-bottom: $space-3;
+    border-bottom: $border-width solid $grey-03;
+    width: 100%;
+
+    @include respond-to('md') {
+      font-size: $font-size-xl;
+    }
+  }
+
+  &__group {
+    margin-bottom: $space-4;
+
+    // Nested fieldset used for radio questions: reset browser chrome.
+    &--radios {
+      border: 0;
+      padding: 0;
+      min-width: 0;
+    }
+
+    // Error state: thick left rule draws the eye to the whole group.
+    &--error {
+      border-left: 4px solid $status-error;
+      padding-left: $space-3;
+
+      .form__input,
+      .form__file {
+        border-color: $status-error;
+        border-width: $border-width-thick;
+      }
+    }
+  }
+
+  &__label {
+    display: block;
+    font-weight: 700;
+    margin-bottom: $space-1;
+    padding: 0;
+  }
+
+  &__hint {
+    color: $grey-02;
+    font-size: $font-size-sm;
+    margin-bottom: $space-2;
+  }
+
+  &__error {
+    color: $status-error;
+    font-weight: 700;
+    font-size: $font-size-sm;
+    margin: $space-2 0 0;
+  }
+
+  &__input {
+    display: block;
+    width: 100%;
+    min-height: $target-min;
+    padding: $space-2 $space-3;
+    border: $border-width solid $grey-01;
+    border-radius: $radius;
+    background: $white;
+    transition: border-color 0.15s ease-in-out;
+
+    &:hover {
+      border-color: $brand-dark;
+    }
+
+    &:focus-visible {
+      border-color: $brand-dark;
+    }
+
+    // Narrower width for short, fixed-length values (phone, ABN).
+    &--md {
+      @include respond-to('sm') {
+        max-width: 20rem;
+      }
+    }
+
+    &--textarea {
+      resize: vertical;
+      min-height: 6rem;
+    }
+  }
+
+  &__file {
+    display: block;
+    width: 100%;
+    padding: $space-2;
+    border: $border-width dashed $grey-02;
+    border-radius: $radius;
+    background: $off-white;
+
+    &::file-selector-button {
+      font: inherit;
+      margin-right: $space-3;
+      padding: $space-2 $space-3;
+      min-height: $target-min;
+      border: $border-width-thick solid $brand-dark;
+      border-radius: $radius;
+      background: $white;
+      color: $brand-dark;
+      font-weight: 700;
+      cursor: pointer;
+    }
+  }
+
+  // Radio option: native input, enlarged; label padding brings the whole
+  // row up to the 44px minimum target size.
+  &__radio {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    min-height: $target-min;
+
+    &-input {
+      width: 1.5rem;
+      height: 1.5rem;
+      margin: 0;
+      accent-color: $brand-dark;
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+
+    &-label {
+      padding-block: $space-2;
+      cursor: pointer;
+    }
+  }
+
+  // Panel revealed by a "Yes" answer; indented so its relationship to the
+  // question above is visually clear.
+  &__conditional {
+    margin: $space-2 0 $space-4 0.75rem;
+    padding-left: $space-3;
+    border-left: 4px solid $grey-03;
+
+    .form__group:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  &__captcha {
+    margin-bottom: $space-2;
+  }
+
+  &__actions {
+    padding-top: $space-3;
+    border-top: $border-width solid $grey-03;
+  }
+}
+
+// --- Button ----------------------------------------------------------------
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%; // full-width on phones for an easy thumb target
+  min-height: $target-min;
+  padding: $space-2 $space-4;
+  border: $border-width-thick solid transparent;
+  border-radius: $radius;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease-in-out;
+
+  @include respond-to('sm') {
+    width: auto;
+  }
+
+  &--primary {
+    background: $brand-dark;
+    color: $text-light;
+
+    &:hover {
+      background: color.adjust($brand-dark, $lightness: 10%);
+    }
+
+    &:active {
+      background: color.adjust($brand-dark, $lightness: -5%);
+    }
+  }
+
+  &[disabled],
+  &[aria-disabled='true'] {
+    background: $grey-03;
+    color: $grey-02;
+    cursor: not-allowed;
+  }
+}
+
+// --- Alert -----------------------------------------------------------------
+
+.alert {
+  padding: $space-3 $space-4;
+  margin-bottom: $space-5;
+  border-left: 6px solid;
+  border-radius: $radius;
+
+  &__title {
+    margin-bottom: $space-2;
+  }
+
+  &__list {
+    margin: 0;
+
+    a {
+      font-weight: 700;
+    }
+  }
+
+  p:last-child {
+    margin-bottom: 0;
+  }
+
+  &--error {
+    background: $status-error-bg;
+    border-color: $status-error;
+
+    .alert__title,
+    a {
+      color: $status-error;
+    }
+  }
+
+  // Title stays body-colour: green-on-green only reaches 4.0:1, so the
+  // border and background carry the status instead.
+  &--success {
+    background: $status-success-bg;
+    border-color: $status-success;
+  }
+}
