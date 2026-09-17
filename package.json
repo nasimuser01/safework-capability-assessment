@@ -1,0 +1,14 @@
+{
+  "name": "safework-capability-assessment",
+  "version": "1.0.0",
+  "description": "Accessible, responsive web form built for the SafeWork NSW capability assessment",
+  "private": true,
+  "scripts": {
+    "build:css": "sass src/styles.scss css/styles.css --style=compressed --no-source-map",
+    "watch:css": "sass src/styles.scss css/styles.css --watch",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "sass": "^1.104.1"
+  }
+}

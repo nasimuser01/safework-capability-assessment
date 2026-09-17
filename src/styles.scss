@@ -1,0 +1,139 @@
+@use 'sass:map';
+
+// ===========================================================================
+// SafeWork NSW Capability Assessment – form styles
+//
+// Single-file SCSS, organised top-to-bottom by specificity:
+//   1. Tokens (colours from the NSW Design System, spacing, type, breakpoints)
+//   2. Mixins
+//   3. Base (reset, typography)
+//   4. Layout
+//   5. Components (form controls, buttons, alerts)
+// ===========================================================================
+
+
+// ---------------------------------------------------------------------------
+// 1. Tokens
+// Colour values are taken from the NSW Design System so the form matches
+// NSW Government branding. Nothing below references a raw hex value.
+// ---------------------------------------------------------------------------
+
+// Brand
+$brand-dark: #002664;
+$brand-light: #cbedfd;
+$brand-supplementary: #146cfd;
+$brand-accent: #d7153a;
+$brand-accent-light: #ffe6ea;
+
+// Text
+$text-dark: #22272b;
+$text-light: #fff;
+$link: #002664;
+$visited: #551a8b;
+
+// Greys
+$grey-01: #22272b;
+$grey-02: #495054;
+$grey-03: #cdd3d6;
+$grey-04: #ebebeb;
+$off-white: #f2f2f2;
+$white: #fff;
+
+// Focus (WCAG 2.2 – 2.4.7 Focus Visible / 2.4.11 Focus Not Obscured)
+$focus: #0086b3;
+$focus-light: #cce7f0;
+
+// Status
+$status-success: #008a07;
+$status-success-bg: #e5f6e6;
+$status-info: #2e5299;
+$status-info-bg: #eaedf4;
+$status-warning: #c95000;
+$status-warning-bg: #fbeee5;
+$status-error: #b81237;
+$status-error-bg: #f7e7eb;
+
+// Typography
+$font-family: 'Public Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI',
+  Roboto, 'Helvetica Neue', Arial, sans-serif;
+$font-size-base: 1rem; // 16px
+$font-size-sm: 0.875rem; // 14px
+$font-size-lg: 1.25rem; // 20px
+$font-size-xl: 1.75rem; // 28px
+$font-size-xxl: 2.25rem; // 36px
+$line-height: 1.5;
+
+// Spacing scale (8px base)
+$space-1: 0.25rem;
+$space-2: 0.5rem;
+$space-3: 1rem;
+$space-4: 1.5rem;
+$space-5: 2rem;
+$space-6: 3rem;
+
+// Layout
+$container-max: 48rem; // 768px – comfortable reading width for a single-column form
+$radius: 0.25rem;
+$border-width: 1px;
+$border-width-thick: 2px;
+$target-min: 2.75rem; // 44px – WCAG 2.2 2.5.8 Target Size
+
+// Breakpoints (mobile-first, min-width)
+$breakpoints: (
+  'sm': 36em, // 576px
+  'md': 48em, // 768px
+  'lg': 62em, // 992px
+);
+
+
+// ---------------------------------------------------------------------------
+// 2. Mixins
+// ---------------------------------------------------------------------------
+
+// Mobile-first media query: @include respond-to('md') { ... }
+@mixin respond-to($name) {
+  $width: map.get($breakpoints, $name);
+  @if not $width {
+    @error 'Unknown breakpoint `#{$name}`. Expected one of: #{map.keys($breakpoints)}';
+  }
+  @media (min-width: $width) {
+    @content;
+  }
+}
+
+// Consistent, high-contrast focus indicator on every interactive element.
+@mixin focus-ring {
+  outline: $border-width-thick solid $focus;
+  outline-offset: 2px;
+}
+
+// Hide visually but keep available to assistive technology.
+@mixin visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+
+// ---------------------------------------------------------------------------
+// 3. Base
+// ---------------------------------------------------------------------------
+// TODO: step 3
+
+
+// ---------------------------------------------------------------------------
+// 4. Layout
+// ---------------------------------------------------------------------------
+// TODO: step 3
+
+
+// ---------------------------------------------------------------------------
+// 5. Components
+// ---------------------------------------------------------------------------
+// TODO: step 3
