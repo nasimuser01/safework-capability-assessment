@@ -137,9 +137,224 @@ export function initConditionalFields(form) {
 
 
 // ---------------------------------------------------------------------------
-// 3. Form validation wiring
+// 3. Form validation
+// Rules are data: field name -> ordered list of { test, message }. The first
+// failing rule wins, so messages progress from "you missed this" to "this is
+// in the wrong format" to "this looks wrong". Adding a field means adding an
+// entry here; the DOM code below is generic.
 // ---------------------------------------------------------------------------
-// TODO: step 6
+
+// Wraps a format validator so an empty value passes (the field is optional).
+const optional = (test) => (value) => !validators.required(value) || test(value);
+
+const fileRequired = (file) => Boolean(file);
+
+const PHONE_MESSAGE =
+  'Enter an Australian phone number, like 0412 345 678 or 02 9876 5432';
+
+export const rules = {
+  phone: [{ test: optional(validators.auPhone), message: PHONE_MESSAGE }],
+  email: [
+    { test: validators.required, message: 'Enter your email address' },
+    {
+      test: validators.email,
+      message: 'Enter an email address in the correct format, like name@example.com',
+    },
+  ],
+  abn: [
+    { test: validators.required, message: 'Enter your ABN' },
+    {
+      test: validators.abnFormat,
+      message: 'ABN must be 11 digits, like 51 824 753 556',
+    },
+    {
+      test: validators.abnChecksum,
+      message: 'This ABN is not valid. Check the digits and try again',
+    },
+  ],
+  policy: [
+    {
+      test: validators.required,
+      message: 'Select yes if your company has a health and safety policy',
+    },
+  ],
+  'policy-file': [
+    { test: fileRequired, message: 'Attach a copy of your health and safety policy' },
+    {
+      test: validators.policyFileType,
+      message: 'The policy must be a PDF or Word document (.pdf, .doc or .docx)',
+    },
+    { test: validators.policyFileSize, message: 'The policy must be 5 MB or smaller' },
+  ],
+  hsr: [
+    {
+      test: validators.required,
+      message: 'Select yes if your company has a health and safety representative',
+    },
+  ],
+  'hsr-name': [
+    {
+      test: validators.required,
+      message: 'Enter the name of your health and safety representative',
+    },
+  ],
+  'hsr-phone': [{ test: optional(validators.auPhone), message: PHONE_MESSAGE }],
+};
+
+// Pure: returns the first failing rule's message, or null when valid.
+export function firstError(fieldRules, value) {
+  const failed = fieldRules.find((rule) => !rule.test(value));
+  return failed ? failed.message : null;
+}
+
+// --- DOM helpers -----------------------------------------------------------
+
+// form.elements[name] is a single element, or a RadioNodeList for radios.
+const isRadioGroup = (control) => control instanceof RadioNodeList;
+
+function controlsOf(control) {
+  return isRadioGroup(control) ? [...control] : [control];
+}
+
+function valueOf(control) {
+  if (isRadioGroup(control)) return control.value;
+  if (control.type === 'file') return control.files[0];
+  return control.value;
+}
+
+// The element that receives focus from an error-summary link.
+function focusTargetOf(control) {
+  return controlsOf(control)[0];
+}
+
+// Radio questions are a fieldset.form__group; other fields sit inside one.
+function groupOf(control) {
+  return focusTargetOf(control).closest('.form__group');
+}
+
+function errorElementOf(form, name) {
+  return form.querySelector(`#${name}-error`);
+}
+
+function showError(form, name, message) {
+  const control = form.elements[name];
+  const errorEl = errorElementOf(form, name);
+  errorEl.replaceChildren();
+  // Prefix announced to screen readers only; sighted users see the red style.
+  const prefix = document.createElement('span');
+  prefix.className = 'visually-hidden';
+  prefix.textContent = 'Error: ';
+  errorEl.append(prefix, message);
+  errorEl.hidden = false;
+  groupOf(control).classList.add('form__group--error');
+  controlsOf(control).forEach((el) => el.setAttribute('aria-invalid', 'true'));
+}
+
+function clearError(form, name) {
+  const control = form.elements[name];
+  const errorEl = errorElementOf(form, name);
+  errorEl.hidden = true;
+  errorEl.replaceChildren();
+  groupOf(control).classList.remove('form__group--error');
+  controlsOf(control).forEach((el) => el.removeAttribute('aria-invalid'));
+}
+
+function hasError(form, name) {
+  return !errorElementOf(form, name).hidden;
+}
+
+// Validates one field, updates its inline error, returns the message or null.
+export function validateField(form, name) {
+  const control = form.elements[name];
+  // Fields inside a hidden conditional panel are disabled: skip them.
+  if (controlsOf(control).every((el) => el.disabled)) {
+    clearError(form, name);
+    return null;
+  }
+  const message = firstError(rules[name], valueOf(control));
+  if (message) showError(form, name, message);
+  else clearError(form, name);
+  return message;
+}
+
+// Validates every ruled field in document order; returns [{ name, message }].
+export function validateForm(form) {
+  const seen = new Set();
+  const errors = [];
+  for (const el of form.elements) {
+    const { name } = el;
+    if (!name || !rules[name] || seen.has(name)) continue;
+    seen.add(name);
+    const message = validateField(form, name);
+    if (message) errors.push({ name, message });
+  }
+  return errors;
+}
+
+// --- Error summary ---------------------------------------------------------
+
+function renderErrorSummary(form, summary, errors) {
+  const list = summary.querySelector('#error-summary-list');
+  list.replaceChildren(
+    ...errors.map(({ name, message }) => {
+      const target = focusTargetOf(form.elements[name]);
+      const link = document.createElement('a');
+      link.href = `#${target.id}`;
+      link.textContent = message;
+      // Anchors scroll but do not focus form controls; do it explicitly so
+      // keyboard and screen-reader users land on the field.
+      link.addEventListener('click', (event) => {
+        event.preventDefault();
+        target.focus();
+        target.scrollIntoView({ block: 'center' });
+      });
+      const item = document.createElement('li');
+      item.append(link);
+      return item;
+    }),
+  );
+  summary.hidden = false;
+  summary.focus();
+}
+
+// --- Wiring ----------------------------------------------------------------
+
+export function initValidation(form, { onValid }) {
+  const summary = document.getElementById('error-summary');
+
+  // Our messages replace the browser's bubbles. Set here rather than in the
+  // markup so native validation still runs if this script fails to load.
+  form.noValidate = true;
+
+  Object.keys(rules).forEach((name) => {
+    controlsOf(form.elements[name]).forEach((el) => {
+      // Format feedback when leaving a field that has content. "Required"
+      // errors wait for submit so tabbing past a field is not punished.
+      el.addEventListener('blur', () => {
+        if (validators.required(el.value) || hasError(form, name)) {
+          validateField(form, name);
+        }
+      });
+      // While a field is in error, re-check on every change so the message
+      // clears the moment the user fixes it.
+      const liveEvent = el.type === 'radio' || el.type === 'file' ? 'change' : 'input';
+      el.addEventListener(liveEvent, () => {
+        if (hasError(form, name)) validateField(form, name);
+      });
+    });
+  });
+
+  form.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const errors = validateForm(form);
+    if (errors.length) {
+      renderErrorSummary(form, summary, errors);
+      return;
+    }
+    summary.hidden = true;
+    onValid(form);
+  });
+}
 
 
 // ---------------------------------------------------------------------------
@@ -149,4 +364,14 @@ export function initConditionalFields(form) {
 if (typeof document !== 'undefined') {
   const form = document.getElementById('hs-form');
   initConditionalFields(form);
+  initValidation(form, {
+    onValid(validForm) {
+      // No backend in this assessment: show confirmation and reset. A real
+      // service would POST FormData(validForm) here.
+      const success = document.getElementById('success-message');
+      validForm.hidden = true;
+      success.hidden = false;
+      success.focus();
+    },
+  });
 }
