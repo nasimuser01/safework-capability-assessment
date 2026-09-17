@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en-AU">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Health and safety details form – SafeWork NSW</title>
+  <meta name="description" content="Provide your personal, business and workplace health and safety details to SafeWork NSW.">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="site-header">
+    <div class="container">
+      <p class="site-header__brand">SafeWork NSW</p>
+    </div>
+  </header>
+
+  <main id="main" class="container" tabindex="-1">
+    <h1>Health and safety details</h1>
+
+    <div class="intro">
+      <p>Use this form to tell SafeWork NSW about your business and its workplace health and safety arrangements. It takes about 5 minutes to complete.</p>
+      <h2 class="intro__heading">Before you start</h2>
+      <ul>
+        <li>Fields marked with <span class="required" aria-hidden="true">*</span> <span class="visually-hidden">an asterisk</span> are required.</li>
+        <li>Have your Australian Business Number (ABN) ready.</li>
+        <li>If your company has a written health and safety policy, have a copy ready to upload (PDF or Word, up to 5 MB).</li>
+      </ul>
+    </div>
+
+    <!-- Error summary: populated and focused by JavaScript when submission fails.
+         role="alert" so screen readers announce it; tabindex="-1" so focus can be moved to it. -->
+    <div id="error-summary" class="alert alert--error" role="alert" tabindex="-1" hidden>
+      <h2 class="alert__title" id="error-summary-title">There is a problem with your submission</h2>
+      <ul class="alert__list" id="error-summary-list"></ul>
+    </div>
+
+    <!-- Success message: announced politely after a valid submission. -->
+    <div id="success-message" class="alert alert--success" role="status" tabindex="-1" hidden>
+      <h2 class="alert__title">Form submitted</h2>
+      <p>Thank you. Your health and safety details have been received.</p>
+    </div>
+
+    <form id="hs-form" class="form" action="#" method="post" enctype="multipart/form-data">
+
+      <!-- ============================================================ -->
+      <!-- Personal details                                              -->
+      <!-- ============================================================ -->
+      <fieldset class="form__fieldset">
+        <legend class="form__legend">Personal details</legend>
+
+        <div class="form__group">
+          <label class="form__label" for="name">Full name</label>
+          <input class="form__input" id="name" name="name" type="text" autocomplete="name" aria-describedby="name-error">
+          <p class="form__error" id="name-error" hidden></p>
+        </div>
+
+        <div class="form__group">
+          <label class="form__label" for="address">Address</label>
+          <textarea class="form__input form__input--textarea" id="address" name="address" rows="3" autocomplete="street-address" aria-describedby="address-error"></textarea>
+          <p class="form__error" id="address-error" hidden></p>
+        </div>
+
+        <div class="form__group">
+          <label class="form__label" for="phone">Phone number</label>
+          <p class="form__hint" id="phone-hint">Australian number, for example 0412 345 678 or 02 9876 5432</p>
+          <input class="form__input form__input--md" id="phone" name="phone" type="tel" inputmode="tel" autocomplete="tel" aria-describedby="phone-hint phone-error">
+          <p class="form__error" id="phone-error" hidden></p>
+        </div>
+
+        <div class="form__group">
+          <label class="form__label" for="email">
+            Email address <span class="required" aria-hidden="true">*</span><span class="visually-hidden">(required)</span>
+          </label>
+          <p class="form__hint" id="email-hint">We will use this to confirm your submission</p>
+          <input class="form__input" id="email" name="email" type="email" inputmode="email" autocomplete="email" required aria-describedby="email-hint email-error">
+          <p class="form__error" id="email-error" hidden></p>
+        </div>
+      </fieldset>
+
+      <!-- ============================================================ -->
+      <!-- Business details                                              -->
+      <!-- ============================================================ -->
+      <fieldset class="form__fieldset">
+        <legend class="form__legend">Business details</legend>
+
+        <div class="form__group">
+          <label class="form__label" for="company">Company name</label>
+          <input class="form__input" id="company" name="company" type="text" autocomplete="organization" aria-describedby="company-error">
+          <p class="form__error" id="company-error" hidden></p>
+        </div>
+
+        <div class="form__group">
+          <label class="form__label" for="abn">
+            Australian Business Number (ABN) <span class="required" aria-hidden="true">*</span><span class="visually-hidden">(required)</span>
+          </label>
+          <p class="form__hint" id="abn-hint">11 digits, for example 51 824 753 556</p>
+          <input class="form__input form__input--md" id="abn" name="abn" type="text" inputmode="numeric" autocomplete="off" required aria-describedby="abn-hint abn-error">
+          <p class="form__error" id="abn-error" hidden></p>
+        </div>
+
+        <div class="form__group">
+          <label class="form__label" for="ceo">CEO name</label>
+          <input class="form__input" id="ceo" name="ceo" type="text" aria-describedby="ceo-error">
+          <p class="form__error" id="ceo-error" hidden></p>
+        </div>
+      </fieldset>
+
+      <!-- ============================================================ -->
+      <!-- Health and safety                                             -->
+      <!-- Radio groups use nested fieldsets so the question is read as   -->
+      <!-- the group label. Conditional panels are declared with data-    -->
+      <!-- attributes so script.js can show/hide them without hard-coding.-->
+      <!-- ============================================================ -->
+      <fieldset class="form__fieldset">
+        <legend class="form__legend">Health and safety</legend>
+
+        <fieldset class="form__group form__group--radios" aria-describedby="policy-error">
+          <legend class="form__label">
+            Does your company have a health and safety policy? <span class="required" aria-hidden="true">*</span><span class="visually-hidden">(required)</span>
+          </legend>
+          <div class="form__radio">
+            <input class="form__radio-input" id="policy-yes" name="policy" type="radio" value="yes" required>
+            <label class="form__radio-label" for="policy-yes">Yes</label>
+          </div>
+          <div class="form__radio">
+            <input class="form__radio-input" id="policy-no" name="policy" type="radio" value="no">
+            <label class="form__radio-label" for="policy-no">No</label>
+          </div>
+          <p class="form__error" id="policy-error" hidden></p>
+        </fieldset>
+
+        <div class="form__conditional" id="policy-upload" data-conditional-for="policy" data-conditional-value="yes" hidden>
+          <div class="form__group">
+            <label class="form__label" for="policy-file">
+              Attach a copy of the policy <span class="required" aria-hidden="true">*</span><span class="visually-hidden">(required)</span>
+            </label>
+            <p class="form__hint" id="policy-file-hint">PDF or Word document (.pdf, .doc, .docx), up to 5 MB</p>
+            <input class="form__file" id="policy-file" name="policy-file" type="file" accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document" data-required aria-describedby="policy-file-hint policy-file-error">
+            <p class="form__error" id="policy-file-error" hidden></p>
+          </div>
+        </div>
+
+        <fieldset class="form__group form__group--radios" aria-describedby="hsr-error">
+          <legend class="form__label">
+            Does your company have a health and safety representative (HSR)? <span class="required" aria-hidden="true">*</span><span class="visually-hidden">(required)</span>
+          </legend>
+          <div class="form__radio">
+            <input class="form__radio-input" id="hsr-yes" name="hsr" type="radio" value="yes" required>
+            <label class="form__radio-label" for="hsr-yes">Yes</label>
+          </div>
+          <div class="form__radio">
+            <input class="form__radio-input" id="hsr-no" name="hsr" type="radio" value="no">
+            <label class="form__radio-label" for="hsr-no">No</label>
+          </div>
+          <p class="form__error" id="hsr-error" hidden></p>
+        </fieldset>
+
+        <div class="form__conditional" id="hsr-details" data-conditional-for="hsr" data-conditional-value="yes" hidden>
+          <div class="form__group">
+            <label class="form__label" for="hsr-name">
+              HSR name <span class="required" aria-hidden="true">*</span><span class="visually-hidden">(required)</span>
+            </label>
+            <input class="form__input" id="hsr-name" name="hsr-name" type="text" data-required aria-describedby="hsr-name-error">
+            <p class="form__error" id="hsr-name-error" hidden></p>
+          </div>
+
+          <div class="form__group">
+            <label class="form__label" for="hsr-phone">HSR phone number</label>
+            <p class="form__hint" id="hsr-phone-hint">Australian number, for example 0412 345 678</p>
+            <input class="form__input form__input--md" id="hsr-phone" name="hsr-phone" type="tel" inputmode="tel" aria-describedby="hsr-phone-hint hsr-phone-error">
+            <p class="form__error" id="hsr-phone-error" hidden></p>
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- ============================================================ -->
+      <!-- Security check (reCAPTCHA is wired up in a later step)        -->
+      <!-- ============================================================ -->
+      <fieldset class="form__fieldset">
+        <legend class="form__legend">Security check</legend>
+        <div class="form__group">
+          <p class="form__hint" id="captcha-hint">Confirm you are not a robot before submitting.</p>
+          <div id="captcha" class="form__captcha" aria-describedby="captcha-hint captcha-error"></div>
+          <p class="form__error" id="captcha-error" hidden></p>
+        </div>
+      </fieldset>
+
+      <div class="form__actions">
+        <button class="button button--primary" type="submit">Submit</button>
+      </div>
+    </form>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      <p>Built for the SafeWork NSW capability assessment.</p>
+    </div>
+  </footer>
+</body>
+</html>
