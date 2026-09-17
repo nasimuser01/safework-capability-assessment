@@ -277,7 +277,8 @@ export function validateField(form, name) {
   return message;
 }
 
-// Validates every ruled field in document order; returns [{ name, message }].
+// Validates every ruled field in document order.
+// Returns [{ message, target }] where target is the element to focus.
 export function validateForm(form) {
   const seen = new Set();
   const errors = [];
@@ -286,18 +287,57 @@ export function validateForm(form) {
     if (!name || !rules[name] || seen.has(name)) continue;
     seen.add(name);
     const message = validateField(form, name);
-    if (message) errors.push({ name, message });
+    if (message) errors.push({ message, target: focusTargetOf(form.elements[name]) });
   }
   return errors;
 }
 
+// --- reCAPTCHA -------------------------------------------------------------
+// The widget lives outside form.elements, so it has its own small validator
+// that produces the same { message, target } shape as the fields above.
+
+const CAPTCHA_MESSAGES = {
+  unsolved: 'Tick the box to confirm you are not a robot',
+  unavailable: 'The security check did not load. Check your connection and reload the page',
+};
+
+// null when the widget is missing or not yet rendered; '' when unsolved.
+function captchaResponse() {
+  try {
+    return typeof grecaptcha === 'undefined' ? null : grecaptcha.getResponse();
+  } catch {
+    return null;
+  }
+}
+
+function setCaptchaError(captchaEl, message) {
+  const errorEl = document.getElementById('captcha-error');
+  const group = captchaEl.closest('.form__group');
+  errorEl.replaceChildren();
+  if (message) {
+    const prefix = document.createElement('span');
+    prefix.className = 'visually-hidden';
+    prefix.textContent = 'Error: ';
+    errorEl.append(prefix, message);
+  }
+  errorEl.hidden = !message;
+  group.classList.toggle('form__group--error', Boolean(message));
+}
+
+export function validateCaptcha(captchaEl) {
+  const response = captchaResponse();
+  const message =
+    response === null ? CAPTCHA_MESSAGES.unavailable : response ? null : CAPTCHA_MESSAGES.unsolved;
+  setCaptchaError(captchaEl, message);
+  return message ? { message, target: captchaEl } : null;
+}
+
 // --- Error summary ---------------------------------------------------------
 
-function renderErrorSummary(form, summary, errors) {
+function renderErrorSummary(summary, errors) {
   const list = summary.querySelector('#error-summary-list');
   list.replaceChildren(
-    ...errors.map(({ name, message }) => {
-      const target = focusTargetOf(form.elements[name]);
+    ...errors.map(({ message, target }) => {
       const link = document.createElement('a');
       link.href = `#${target.id}`;
       link.textContent = message;
@@ -321,6 +361,11 @@ function renderErrorSummary(form, summary, errors) {
 
 export function initValidation(form, { onValid }) {
   const summary = document.getElementById('error-summary');
+  const captchaEl = document.getElementById('captcha');
+
+  // Named globals the reCAPTCHA widget calls (see data-callback in markup).
+  window.onCaptchaSolved = () => setCaptchaError(captchaEl, null);
+  window.onCaptchaExpired = () => setCaptchaError(captchaEl, CAPTCHA_MESSAGES.unsolved);
 
   // Our messages replace the browser's bubbles. Set here rather than in the
   // markup so native validation still runs if this script fails to load.
@@ -347,8 +392,10 @@ export function initValidation(form, { onValid }) {
   form.addEventListener('submit', (event) => {
     event.preventDefault();
     const errors = validateForm(form);
+    const captchaError = validateCaptcha(captchaEl);
+    if (captchaError) errors.push(captchaError);
     if (errors.length) {
-      renderErrorSummary(form, summary, errors);
+      renderErrorSummary(summary, errors);
       return;
     }
     summary.hidden = true;

@@ -469,6 +469,13 @@ main {
 
   &__captcha {
     margin-bottom: $space-2;
+
+    // The widget is a fixed 304px wide; scale it slightly so it fits inside
+    // the 16px gutters on the narrowest phones (320px).
+    @media (max-width: 22.5em) {
+      transform: scale(0.88);
+      transform-origin: 0 0;
+    }
   }
 
   &__actions {

@@ -9,6 +9,9 @@
       content="Provide your personal, business and workplace health and safety details to SafeWork NSW."
     />
     <link rel="stylesheet" href="css/styles.css" />
+    <!-- reCAPTCHA v2 checkbox. The widget auto-renders into .g-recaptcha and
+         calls the named global callbacks defined in script.js. -->
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to main content</a>
@@ -356,10 +359,18 @@
             <p class="form__hint" id="captcha-hint">
               Confirm you are not a robot before submitting.
             </p>
+            <!-- data-sitekey is Google's public TEST key: it always passes and
+                 works on any domain. Replace with a real key for production. -->
             <div
               id="captcha"
-              class="form__captcha"
+              class="g-recaptcha form__captcha"
+              role="group"
+              aria-label="Security check"
               aria-describedby="captcha-hint captcha-error"
+              tabindex="-1"
+              data-sitekey="6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI"
+              data-callback="onCaptchaSolved"
+              data-expired-callback="onCaptchaExpired"
             ></div>
             <p class="form__error" id="captcha-error" hidden></p>
           </div>
